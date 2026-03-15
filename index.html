@@ -402,15 +402,15 @@
   <!-- ── START SCREEN ── -->
   <div id="startScreen" class="screen active">
     <p class="start-text">
-      Каждый ход выдаем вам три слова. Одно из них - часть некой последовательности, "правила". Вам надо угадать его и найти правило раньше, чем закончатся попытки.
+      Каждый ход выдаем вам три слова. Одно из них - часть некой темы. Вам надо угадать эту тему раньше, чем закончатся попытки.
     </p>
     <div class="rules-box">
       <strong>Правила игры:</strong><br>
-      — Три слова на экране. Одно соответствует тайному правилу, два — нет.<br>
+      — Три слова на экране. Одно соответствует тайной теме, два — нет.<br>
       — Правильный выбор добавим на экран. Если не угадали, то правильное слово ненадолго покажут вам.<br> 
       — Первая ошибка — без последствий. Еще три — и игра окончена.<br>
-      — В любой момент, но до десятого хода вам надо назвать правило — нажмите <strong>Назвать правило</strong> и попытайтесь описать его в два-три слова. Неверная догадка засчитывается в ошибки.<br>
-      — Игра продолжается 10 ходов или до угадывания правила. Новая игра - новое правило.
+      — В любой момент, но до десятого хода вам надо назвать тему — нажмите <strong>Назвать тему</strong> и попытайтесь описать ее в два-три слова. Неверная догадка засчитывается в ошибки.<br>
+      — Игра продолжается 10 ходов или до угадывания темы. Новая игра - новая тема.
     </div>
     <button class="btn btn-primary" onclick="startGame()">НАЧАТЬ ИГРУ</button>
   </div>
@@ -429,7 +429,7 @@
       </div>
     </div>
 
-    <div class="offer-label">Выберите слово, которое подчиняется правилу:</div>
+    <div class="offer-label">Выберите слово, которое соответствует теме:</div>
     <div class="offer-words" id="offerWords"></div>
 
     <div class="feedback" id="feedback"></div>
@@ -445,12 +445,12 @@
 
     <div class="divider"></div>
 
-    <div class="guess-label">Назвать правило:</div>
+    <div class="guess-label">Назвать тему:</div>
     <div class="guess-row">
       <input type="text" id="guessInput"
-        placeholder="опишите правило в пару-тройку слов..."
+        placeholder="опишите тему в пару-тройку слов..."
         onkeydown="if(event.key==='Enter') submitGuess()">
-      <button class="btn btn-outline" onclick="submitGuess()">НАЗВАТЬ ПРАВИЛО</button>
+      <button class="btn btn-outline" onclick="submitGuess()">НАЗВАТЬ ТЕМУ</button>
     </div>
 
   </div>
@@ -459,9 +459,9 @@
   <div id="winScreen" class="screen">
     <div class="end-screen win">
       <div class="end-title">Верно!</div>
-      <div class="end-sub">правило разгадано</div>
+      <div class="end-sub">тема разгадана</div>
       <div class="rule-reveal">
-        <div class="rule-reveal-label">Тайное правило</div>
+        <div class="rule-reveal-label">Тайная тема</div>
         <div class="rule-reveal-text" id="winRuleText"></div>
       </div>
       <div class="trail-label" style="text-align:left;margin-bottom:10px">Ваша цепочка:</div>
@@ -476,7 +476,7 @@
       <div class="end-title">Увы.</div>
       <div class="end-sub" id="lossReason">три ошибки</div>
       <div class="rule-reveal">
-        <div class="rule-reveal-label">Тайное правило</div>
+        <div class="rule-reveal-label">Тайная тема</div>
         <div class="rule-reveal-text" id="lossRuleText"></div>
       </div>
       <div style="font-style:italic;color:var(--ink-dim);font-size:0.9rem;margin-bottom:24px">Правило остаётся тайным — угадайте в следующий раз.</div>
@@ -799,7 +799,7 @@ async function init() {
     await loadRules();
   } catch(e) {
     document.querySelector('.start-text').textContent =
-      'Ошибка загрузки данных. Убедитесь, что дефиниции находятся в той же папке, и откройте игру через локальный сервер (python -m http.server 8000).';
+      'Ошибка загрузки данных. Убедитесь, что файл rules.json находится в той же папке, и откройте игру через локальный сервер (python -m http.server 8000).';
     document.querySelector('.btn-primary').disabled = true;
   }
 }
