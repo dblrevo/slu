@@ -311,18 +311,18 @@
     /* Turn counter */
     .turn-row {
       display: flex;
-      gap: 4px;
+      gap: 3px;
     }
 
     .turn-pip {
-      width: 20px;
-      height: 4px;
-      background: var(--ink-faint);
-      transition: background 0.3s;
+      font-size: 18px;
+      color: #a89880;
+      transition: color 0.3s;
+      line-height: 1;
     }
 
-    .turn-pip.done { background: var(--gold); }
-    .turn-pip.active { background: var(--ink); }
+    .turn-pip.done { color: var(--gold); }
+    .turn-pip.active { color: var(--ink); }
 
     /* ── END SCREENS ── */
     .end-screen {
@@ -393,7 +393,7 @@
 
   <header>
     <h1>О чем это мы?</h1>
-    <div class="subtitle">игра в логику и наблюдение</div>
+    <div class="subtitle">игра в логику и наблюдательность</div>
   </header>
 
   <!-- ── START SCREEN ── -->
@@ -445,7 +445,7 @@
     <div class="guess-label">Назвать правило:</div>
     <div class="guess-row">
       <input type="text" id="guessInput"
-        placeholder="опишите правило своими словами…"
+        placeholder="опишите правило в пару-тройку слов..."
         onkeydown="if(event.key==='Enter') submitGuess()">
       <button class="btn btn-outline" onclick="submitGuess()">НАЗВАТЬ ПРАВИЛО</button>
     </div>
@@ -664,9 +664,10 @@ function buildTurnPips() {
   const container = document.getElementById('turnPips');
   container.innerHTML = '';
   for (let i = 0; i < maxTurns; i++) {
-    const pip = document.createElement('div');
+    const pip = document.createElement('span');
     pip.className = 'turn-pip';
     pip.id = 'turnPip' + i;
+    pip.textContent = '▪';
     container.appendChild(pip);
   }
 }
