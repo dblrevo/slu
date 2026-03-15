@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>А это мы о чем?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --paper: #fdfaf4;
+      --ink: #1a1410;
+      --ink-dim: #6b5f52;
+      --ink-faint: #c4b9aa;
+      --red: #c0392b;
+      --green: #2d6a4f;
+      --gold: #b8860b;
+      --border: #d4c9ba;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'PT Mono', monospace;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 16px 60px;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 27px,
+          rgba(180,160,130,0.15) 27px,
+          rgba(180,160,130,0.15) 28px
+        );
+    }
+
+    .container {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      padding: 48px 0 8px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-top: 8px;
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── START SCREEN ── */
+    .start-text {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: var(--ink-dim);
+      margin-bottom: 28px;
+      font-style: italic;
+    }
+
+    .rules-box {
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--ink);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      font-size: 0.85rem;
+      line-height: 2;
+      background: var(--paper);
+    }
+
+    .rules-box strong { color: var(--ink); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: 'PT Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 14px 32px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .btn-primary:hover { background: #333; }
+    .btn-primary:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid var(--ink);
+    }
+    .btn-outline:hover { background: var(--ink); color: var(--bg); }
+    .btn-outline:disabled { border-color: var(--ink-faint); color: var(--ink-faint); cursor: not-allowed; }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1.5px solid var(--red);
+      font-size: 10px;
+    }
+    .btn-danger:hover { background: var(--red); color: white; }
+
+    /* ── GAME SCREEN ── */
+    .game-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+
+    .strikes {
+      display: flex;
+      gap: 6px;
+    }
+
+    .strike-pip {
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--ink-faint);
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+
+    .strike-pip.used {
+      background: var(--red);
+      border-color: var(--red);
+    }
+
+    /* Offer area */
+    .offer-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 12px;
+    }
+
+    .offer-words {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .offer-word {
+      flex: 1;
+      min-width: 120px;
+      padding: 20px 16px;
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-style: italic;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .offer-word:hover {
+      border-color: var(--ink);
+      background: var(--bg);
+      transform: translateY(-2px);
+    }
+
+    .offer-word.selected {
+      border-color: var(--ink);
+      border-width: 2px;
+      background: var(--ink);
+      color: var(--bg);
+    }
+
+    .offer-word.correct {
+      border-color: var(--green);
+      background: #f0fff4;
+      color: var(--green);
+    }
+
+    .offer-word.wrong {
+      border-color: var(--red);
+      background: #fff5f5;
+      color: var(--red);
+      text-decoration: line-through;
+    }
+
+    .offer-word.disabled {
+      pointer-events: none;
+    }
+
+    /* History trail */
+    .trail-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+
+    .trail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+      min-height: 36px;
+    }
+
+    .trail-word {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1rem;
+      padding: 4px 12px;
+      border: 1px solid var(--green);
+      color: var(--green);
+      background: #f0fff4;
+      animation: popIn 0.3s ease-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Feedback */
+    .feedback {
+      min-height: 28px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .feedback.correct { color: var(--green); }
+    .feedback.wrong { color: var(--red); }
+
+    /* Action area */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 24px 0;
+    }
+
+    /* Rule guess area */
+    .guess-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 10px;
+    }
+
+    .guess-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      font-family: 'PT Mono', monospace;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      background: var(--paper);
+      border: 1.5px solid var(--border);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus { border-color: var(--ink); }
+    input[type="text"]::placeholder { color: var(--ink-faint); font-style: italic; }
+
+    /* Turn counter */
+    .turn-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .turn-pip {
+      width: 20px;
+      height: 4px;
+      background: var(--ink-faint);
+      transition: background 0.3s;
+    }
+
+    .turn-pip.done { background: var(--gold); }
+    .turn-pip.active { background: var(--ink); }
+
+    /* ── END SCREENS ── */
+    .end-screen {
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .end-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 10vw, 5rem);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .win .end-title { color: var(--green); }
+    .loss .end-title { color: var(--ink-dim); }
+
+    .end-sub {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 32px;
+    }
+
+    .rule-reveal {
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--gold);
+      padding: 24px;
+      margin-bottom: 32px;
+      background: var(--paper);
+      text-align: left;
+    }
+
+    .rule-reveal-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 8px;
+    }
+
+    .rule-reveal-text {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      color: var(--ink);
+    }
+
+    .trail-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+      justify-content: center;
+    }
+
+    @media (max-width: 480px) {
+      .offer-words { flex-direction: column; }
+      .guess-row { flex-direction: column; }
+      .action-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>А это мы о чем?</h1>
+    <div class="subtitle">игра в логику и наблюдение</div>
+  </header>
+
+  <!-- ── START SCREEN ── -->
+  <div id="startScreen" class="screen active">
+    <p class="start-text">
+      Каждый ход выдаем три слова. Одно из них - часть последовательности, "правила". Вам надо понять, что это за последовательность.<br>
+      Угадай ее — и найди правило раньше, чем закончатся попытки.
+    </p>
+    <div class="rules-box">
+      <strong>Правила игры:</strong><br>
+      — Три слова на экране. Одно соответствует тайному правилу, два — нет.<br>
+      — Правильный выбор добавим на экран. Если не угадали, то правильное слово ненадолго покажут вам.<br> 
+      — Три ошибки — игра окончена.<br>
+      — В любой момент можно назвать правило — нажмите <strong>Назвать правило</strong> и попытайтесь описать его в два-три слова.<br>
+      — Игра продолжается до 10 ходов или до угадывания правила. Новая игра - новое правило.
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">НАЧАТЬ ИГРУ</button>
+  </div>
+
+  <!-- ── GAME SCREEN ── -->
+  <div id="gameScreen" class="screen">
+
+    <div class="game-meta">
+      <div>
+        <div class="turn-row" id="turnPips"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span>Ошибки</span>
+        <div class="strikes" id="strikePips"></div>
+        <button class="btn btn-danger" onclick="abandonGame()">Сдаться</button>
+      </div>
+    </div>
+
+    <div class="offer-label">Выберите слово, которое подчиняется правилу:</div>
+    <div class="offer-words" id="offerWords"></div>
+
+    <div class="feedback" id="feedback"></div>
+
+
+
+    <div class="divider"></div>
+
+    <div class="trail-label">Правильные слова:</div>
+    <div class="trail" id="trail"></div>
+
+    <div class="divider"></div>
+
+    <div class="guess-label">Назвать правило:</div>
+    <div class="guess-row">
+      <input type="text" id="guessInput"
+        placeholder="опишите правило своими словами…"
+        onkeydown="if(event.key==='Enter') submitGuess()">
+      <button class="btn btn-outline" onclick="submitGuess()">НАЗВАТЬ ПРАВИЛО</button>
+    </div>
+
+  </div>
+
+  <!-- ── WIN SCREEN ── -->
+  <div id="winScreen" class="screen">
+    <div class="end-screen win">
+      <div class="end-title">Верно!</div>
+      <div class="end-sub">правило разгадано</div>
+      <div class="rule-reveal">
+        <div class="rule-reveal-label">Тайное правило</div>
+        <div class="rule-reveal-text" id="winRuleText"></div>
+      </div>
+      <div class="trail-label" style="text-align:left;margin-bottom:10px">Ваша цепочка:</div>
+      <div class="trail-summary" id="winTrail"></div>
+      <button class="btn btn-primary" onclick="playAgain()"()">ЕЩЁ РАЗ</button>
+    </div>
+  </div>
+
+  <!-- ── LOSS SCREEN ── -->
+  <div id="lossScreen" class="screen">
+    <div class="end-screen loss">
+      <div class="end-title">Увы.</div>
+      <div class="end-sub" id="lossReason">три ошибки</div>
+      <div class="rule-reveal">
+        <div class="rule-reveal-label">Тайное правило</div>
+        <div class="rule-reveal-text" id="lossRuleText"></div>
+      </div>
+      <div style="font-style:italic;color:var(--ink-dim);font-size:0.9rem;margin-bottom:24px">Правило остаётся тайным — угадайте в следующий раз.</div>
+      <div class="trail-label" style="text-align:left;margin-bottom:10px">Правильные слова были:</div>
+      <div class="trail-summary" id="lossTrail"></div>
+      <button class="btn btn-primary" onclick="playAgain()">ЕЩЁ РАЗ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// WORD BANK — loaded from inline data
+// (In production this would be loaded from wordbank.csv)
+// ═══════════════════════════════════════════════
+
+let RULES = {};
+
+async function loadRules() {
+  const response = await fetch('rules.json');
+  RULES = await response.json();
+}
+
+// ═══════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════
+
+let currentRule = null;
+let currentRuleId = null;
+let correctPool = [];
+let distractorPool = [];
+let usedCorrect = [];
+let usedDistractors = [];
+let trail = [];
+let strikes = 0;
+let turn = 0;
+let maxTurns = 10;
+let maxStrikes = 3;
+let selectedWord = null;
+let currentOffer = [];
+let awaitingNext = false;
+
+// Shuffle-without-replacement rule queue
+let ruleQueue = [];
+
+function pickNextRule() {
+  if (ruleQueue.length === 0) {
+    ruleQueue = shuffle(Object.keys(RULES));
+  }
+  return ruleQueue.pop();
+}
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickRandom(arr, n) {
+  return shuffle(arr).slice(0, n);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════
+
+function startGame() {
+  // Pick next rule from shuffled queue — no repeats until all rules seen
+  currentRuleId = pickNextRule();
+  currentRule = RULES[currentRuleId];
+  hasPlayed = true;
+
+  // Reset state
+  correctPool = shuffle([...currentRule.correct]);
+  distractorPool = shuffle([...currentRule.distractors]);
+  usedCorrect = [];
+  usedDistractors = [];
+  trail = [];
+  strikes = 0;
+  turn = 0;
+  selectedWord = null;
+  awaitingNext = false;
+
+  // Build UI
+  buildTurnPips();
+  buildStrikePips();
+  document.getElementById('trail').innerHTML = '';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('guessInput').value = '';
+
+  showScreen('gameScreen');
+  loadTurn();
+}
+
+function buildTurnPips() {
+  const container = document.getElementById('turnPips');
+  container.innerHTML = '';
+  for (let i = 0; i < maxTurns; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'turn-pip';
+    pip.id = 'turnPip' + i;
+    container.appendChild(pip);
+  }
+}
+
+function buildStrikePips() {
+  const container = document.getElementById('strikePips');
+  container.innerHTML = '';
+  for (let i = 0; i < maxStrikes; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'strike-pip';
+    pip.id = 'strikePip' + i;
+    container.appendChild(pip);
+  }
+}
+
+function updateTurnPip() {
+  for (let i = 0; i < maxTurns; i++) {
+    const pip = document.getElementById('turnPip' + i);
+    if (!pip) continue;
+    pip.className = 'turn-pip';
+    if (i < turn) pip.classList.add('done');
+    else if (i === turn) pip.classList.add('active');
+  }
+}
+
+function loadTurn() {
+  selectedWord = null;
+  awaitingNext = false;
+
+  updateTurnPip();
+
+  // Pick one correct word
+  const correctWord = correctPool[turn % correctPool.length];
+
+  // Pick two distractors not recently used
+  const available = distractorPool.filter(w => !usedDistractors.slice(-4).includes(w));
+  const twoDistractors = pickRandom(available.length >= 2 ? available : distractorPool, 2);
+  usedDistractors.push(...twoDistractors);
+
+  currentOffer = shuffle([correctWord, ...twoDistractors]);
+
+  // Render offer words
+  const container = document.getElementById('offerWords');
+  container.innerHTML = '';
+  currentOffer.forEach(word => {
+    const div = document.createElement('div');
+    div.className = 'offer-word';
+    div.textContent = word;
+    div.onclick = () => selectWord(word, div);
+    container.appendChild(div);
+  });
+
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function selectWord(word, el) {
+  if (awaitingNext) return;
+
+  // Immediately mark as selected and process
+  document.querySelectorAll('.offer-word').forEach(w => {
+    w.classList.remove('selected');
+    w.classList.add('disabled');
+  });
+  el.classList.add('selected');
+  selectedWord = word;
+  awaitingNext = true;
+
+  const correctWord = correctPool[turn % correctPool.length];
+  const isCorrect = selectedWord === correctWord;
+
+  // Reveal correct/wrong after brief pause
+  setTimeout(() => {
+    document.querySelectorAll('.offer-word').forEach(el2 => {
+      if (el2.textContent === correctWord) el2.classList.add('correct');
+      else if (el2.textContent === selectedWord && !isCorrect) el2.classList.add('wrong');
+    });
+
+    const feedback = document.getElementById('feedback');
+
+    if (isCorrect) {
+      trail.push(selectedWord);
+      addToTrail(selectedWord);
+      feedback.textContent = '✓ Верно!';
+      feedback.className = 'feedback correct';
+    } else {
+      strikes++;
+      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      feedback.textContent = '✗ Неверно. Правильное слово: ' + correctWord;
+      feedback.className = 'feedback wrong';
+    }
+
+    // Check end conditions
+    if (strikes >= maxStrikes) {
+      setTimeout(() => endGame('strikes'), 1200);
+      return;
+    }
+
+    turn++;
+
+    if (turn >= maxTurns) {
+      setTimeout(() => endGame('turns'), 1200);
+      return;
+    }
+
+    // Auto-advance to next turn
+    setTimeout(() => loadTurn(), 1400);
+  }, 200);
+}
+
+function addToTrail(word) {
+  const container = document.getElementById('trail');
+  const div = document.createElement('div');
+  div.className = 'trail-word';
+  div.textContent = word;
+  container.appendChild(div);
+}
+
+function submitGuess() {
+  const input = document.getElementById('guessInput');
+  const guess = input.value.trim();
+  if (!guess) return;
+
+  // Match against curated synonym roots for this rule
+  const guessLower = guess.toLowerCase();
+  const matched = currentRule.guesses.some(root => guessLower.includes(root.toLowerCase()));
+
+  if (matched) {
+    endGame('guess');
+  } else {
+    strikes++;
+    if (strikes <= maxStrikes) {
+      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+    }
+    const feedback = document.getElementById('feedback');
+    feedback.textContent = '✗ Не угадали правило.';
+    feedback.className = 'feedback wrong';
+    input.value = '';
+
+    if (strikes >= maxStrikes) {
+      setTimeout(() => endGame('strikes'), 1000);
+    }
+  }
+}
+
+function abandonGame() {
+  endGame('abandon');
+}
+
+function endGame(reason) {
+  if (reason === 'guess') {
+    document.getElementById('winRuleText').textContent = currentRule.title;
+    populateTrailSummary('winTrail');
+    showScreen('winScreen');
+  } else {
+    const reasons = {
+      strikes: 'три ошибки',
+      turns: 'ходы закончились',
+      abandon: 'игра прервана'
+    };
+    document.getElementById('lossReason').textContent = reasons[reason] || '';
+    // Rule is NOT revealed on loss — player must earn the reveal
+    document.getElementById('lossRuleText').textContent = '—';
+    populateTrailSummary('lossTrail');
+    showScreen('lossScreen');
+  }
+}
+
+function populateTrailSummary(containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (trail.length === 0) {
+    container.innerHTML = '<span style="color:var(--ink-dim);font-style:italic;font-size:0.9rem">нет правильных слов</span>';
+    return;
+  }
+  trail.forEach(word => {
+    const div = document.createElement('div');
+    div.className = 'trail-word';
+    div.textContent = word;
+    container.appendChild(div);
+  });
+}
+
+function resetGame() {
+  showScreen('startScreen');
+}
+let hasPlayed = false;
+
+function playAgain() {
+  if (hasPlayed) startGame();
+  else showScreen('startScreen');
+}
+
+// Initialise — load rules then enable start button
+async function init() {
+  try {
+    await loadRules();
+  } catch(e) {
+    document.querySelector('.start-text').textContent =
+      'Ошибка загрузки данных. Убедитесь, что файл rules.json находится в той же папке, и откройте игру через локальный сервер (например, python -m http.server 8000).';
+    document.querySelector('.btn-primary').disabled = true;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
