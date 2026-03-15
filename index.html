@@ -557,16 +557,15 @@ function startGame() {
   currentRule = RULES[currentRuleId];
   hasPlayed = true;
 
-  correctPool = currentRule.ordered
-  ? [...currentRule.correct]
-  : shuffle([...currentRule.correct]);
-
   // Reset state
-  correctPool = shuffle([...currentRule.correct]);
+  correctPool = currentRule.ordered
+    ? [...currentRule.correct]
+    : shuffle([...currentRule.correct]);
   distractorPool = shuffle([...currentRule.distractors]);
   usedCorrect = [];
   usedDistractors = [];
   trail = [];
+  missedTrailWords = [];
   strikes = 0;
   turn = 0;
   selectedWord = null;
@@ -576,6 +575,9 @@ function startGame() {
   buildTurnPips();
   buildStrikePips();
   document.getElementById('trail').innerHTML = '';
+  document.getElementById('missedTrail').innerHTML = '';
+  document.getElementById('missedTrail').classList.remove('visible');
+  document.getElementById('missedLabel').style.display = 'none';
   document.getElementById('feedback').textContent = '';
   document.getElementById('guessInput').value = '';
 
@@ -676,10 +678,16 @@ function selectWord(word, el) {
       feedback.textContent = '✓ Верно!';
       feedback.className = 'feedback correct';
     } else {
-      strikes++;
-      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      if (turn > 0) {
+        strikes++;
+        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      }
       feedback.textContent = '✗ Неверно. Правильное слово: ' + correctWord;
       feedback.className = 'feedback wrong';
+      if (turn >= 1) {
+        missedTrailWords.push(correctWord);
+        addToMissedTrail(correctWord);
+      }
     }
 
     // Check end conditions
@@ -720,9 +728,11 @@ function submitGuess() {
   if (matched) {
     endGame('guess');
   } else {
-    strikes++;
-    if (strikes <= maxStrikes) {
-      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+    if (turn > 0) {
+      strikes++;
+      if (strikes <= maxStrikes) {
+        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      }
     }
     const feedback = document.getElementById('feedback');
     feedback.textContent = '✗ Не угадали правило.';
