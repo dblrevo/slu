@@ -507,6 +507,7 @@ let distractorPool = [];
 let usedCorrect = [];
 let usedDistractors = [];
 let trail = [];
+let missedTrailWords = [];
 let strikes = 0;
 let turn = 0;
 let maxTurns = 10;
@@ -557,10 +558,12 @@ function startGame() {
   currentRule = RULES[currentRuleId];
   hasPlayed = true;
 
-  // Reset state
   correctPool = currentRule.ordered
-    ? [...currentRule.correct]
-    : shuffle([...currentRule.correct]);
+  ? [...currentRule.correct]
+  : shuffle([...currentRule.correct]);
+
+  // Reset state
+  correctPool = shuffle([...currentRule.correct]);
   distractorPool = shuffle([...currentRule.distractors]);
   usedCorrect = [];
   usedDistractors = [];
@@ -575,9 +578,6 @@ function startGame() {
   buildTurnPips();
   buildStrikePips();
   document.getElementById('trail').innerHTML = '';
-  document.getElementById('missedTrail').innerHTML = '';
-  document.getElementById('missedTrail').classList.remove('visible');
-  document.getElementById('missedLabel').style.display = 'none';
   document.getElementById('feedback').textContent = '';
   document.getElementById('guessInput').value = '';
 
