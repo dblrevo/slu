@@ -557,6 +557,10 @@ function startGame() {
   currentRule = RULES[currentRuleId];
   hasPlayed = true;
 
+  correctPool = currentRule.ordered
+  ? [...currentRule.correct]
+  : shuffle([...currentRule.correct]);
+
   // Reset state
   correctPool = shuffle([...currentRule.correct]);
   distractorPool = shuffle([...currentRule.distractors]);
