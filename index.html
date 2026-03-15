@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Угадай правило</title>
+  <title>О чем это мы?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=PT+Mono&display=swap" rel="stylesheet">
   <style>
@@ -392,7 +392,7 @@
 <div class="container">
 
   <header>
-    <h1>Угадай правило</h1>
+    <h1>О чем это мы?</h1>
     <div class="subtitle">игра в логику и наблюдение</div>
   </header>
 
@@ -584,6 +584,7 @@ let usedCorrect = [];
 let usedDistractors = [];
 let trail = [];
 let strikes = 0;
+let graceUsed = false;
 let hasPlayed = false;
 let turn = 0;
 let maxTurns = 10;
@@ -633,17 +634,17 @@ function startGame() {
   currentRuleId = pickNextRule();
   currentRule = RULES[currentRuleId];
   hasPlayed = true;
-correctPool = currentRule.ordered
-  ? [...currentRule.correct]
-  : shuffle([...currentRule.correct]);
 
   // Reset state
-  correctPool = shuffle([...currentRule.correct]);
+  correctPool = currentRule.ordered
+    ? [...currentRule.correct]
+    : shuffle([...currentRule.correct]);
   distractorPool = shuffle([...currentRule.distractors]);
   usedCorrect = [];
   usedDistractors = [];
   trail = [];
   strikes = 0;
+  graceUsed = false;
   turn = 0;
   selectedWord = null;
   awaitingNext = false;
@@ -749,8 +750,12 @@ function selectWord(word, el) {
       feedback.textContent = '✓ Верно!';
       feedback.className = 'feedback correct';
     } else {
-      strikes++;
-      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      if (graceUsed) {
+        strikes++;
+        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      } else {
+        graceUsed = true;
+      }
       feedback.textContent = '✗ Неверно. Правильное слово: ' + correctWord;
       feedback.className = 'feedback wrong';
     }
@@ -793,9 +798,13 @@ function submitGuess() {
   if (matched) {
     endGame('guess');
   } else {
-    strikes++;
-    if (strikes <= maxStrikes) {
-      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+    if (graceUsed) {
+      strikes++;
+      if (strikes <= maxStrikes) {
+        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+      }
+    } else {
+      graceUsed = true;
     }
     const feedback = document.getElementById('feedback');
     feedback.textContent = '✗ Не угадали правило.';
