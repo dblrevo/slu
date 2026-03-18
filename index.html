@@ -266,6 +266,7 @@
 
     .feedback.correct { color: var(--green); }
     .feedback.wrong { color: var(--red); }
+    .feedback.warm { color: var(--gold); }
 
     /* Action area */
     .action-row {
@@ -405,9 +406,9 @@
       Каждый ход выдаем вам три слова. Одно из них - часть некой темы, последовательности. Вам надо угадать эту тему </p>
     <div class="rules-box">
       <strong>Правила игры:</strong><br>
-      — Три слова на экране. Одно соответствует тайной теме, два — нет. Выберите одно из слов. <br>
-      — Если не угадали, то правильное слово на пару секунд покажем. То, что угадали, добавим на экран. <br>
-      — У вас 10 ходов, десять новых "троек" со словами. Первая ошибка — без последствий. Еще три — и игра окончена.<br>
+      — В начале игры на экране три слова. Одно соответствует тайной теме, два — нет. Стартовое слово добавляется внизу<br>
+      — Если вы не угадали, то на пару секунд покажется правильное слово. То, что вы угадали, добавим на экран вслед за стартовым. <br>
+      — У вас 10 ходов, десять новых "троек" со словами. Три ошибки — игра окончена.<br>
       — В любой момент, но до десятого хода вам надо назвать тему — нажмите <strong>Назвать тему</strong> и попытайтесь описать ее в два-три слова. Неверная догадка засчитывается в ошибки.<br>
       — Игра продолжается 10 ходов или до угадывания темы. Новая игра - новая тема.
     </div>
@@ -512,7 +513,6 @@ let usedCorrect = [];
 let usedDistractors = [];
 let trail = [];
 let strikes = 0;
-let graceUsed = false;
 let hasPlayed = false;
 let turn = 0;
 let maxTurns = 10;
@@ -572,7 +572,6 @@ function startGame() {
   usedDistractors = [];
   trail = [];
   strikes = 0;
-  graceUsed = false;
   turn = 0;
   selectedWord = null;
   awaitingNext = false;
@@ -585,7 +584,7 @@ function startGame() {
   document.getElementById('guessInput').value = '';
 
   showScreen('gameScreen');
-  loadTurn();
+  showRevealedTurn();
 }
 
 function buildTurnPips() {
@@ -619,6 +618,41 @@ function updateTurnPip() {
     if (i < turn) pip.classList.add('done');
     else if (i === turn) pip.classList.add('active');
   }
+}
+
+function showRevealedTurn() {
+  // Show turn 0 — correct word already revealed, pips stay at 0
+  awaitingNext = true;
+
+  const correctWord = correctPool[0];
+  const available = distractorPool.filter(w => !usedDistractors.slice(-4).includes(w));
+  const twoDistractors = pickRandom(available.length >= 2 ? available : distractorPool, 2);
+  usedDistractors.push(...twoDistractors);
+
+  const offer = shuffle([correctWord, ...twoDistractors]);
+
+  const container = document.getElementById('offerWords');
+  container.innerHTML = '';
+  offer.forEach(word => {
+    const div = document.createElement('div');
+    div.className = 'offer-word disabled';
+    if (word === correctWord) div.classList.add('correct');
+    div.textContent = word;
+    container.appendChild(div);
+  });
+
+  // Add correct word to trail silently
+  trail.push(correctWord);
+  addToTrail(correctWord);
+
+  document.getElementById('feedback').textContent = 'Это слово соответствует правилу. Попробуйте угадать следующее.';
+  document.getElementById('feedback').className = 'feedback correct';
+
+  // Advance to turn 1 after pause
+  setTimeout(() => {
+    turn = 1;
+    loadTurn();
+  }, 2500);
 }
 
 function loadTurn() {
@@ -679,12 +713,8 @@ function selectWord(word, el) {
       feedback.textContent = '✓ Верно!';
       feedback.className = 'feedback correct';
     } else {
-      if (graceUsed) {
-        strikes++;
-        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
-      } else {
-        graceUsed = true;
-      }
+      strikes++;
+      document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
       feedback.textContent = '✗ Неверно. Правильное слово: ' + correctWord;
       feedback.className = 'feedback wrong';
     }
@@ -720,29 +750,46 @@ function submitGuess() {
   const guess = input.value.trim();
   if (!guess) return;
 
-  // Match against curated synonym roots for this rule
   const guessLower = guess.toLowerCase();
-  const matched = currentRule.guesses.some(root => guessLower.includes(root.toLowerCase()));
+  const feedback = document.getElementById('feedback');
 
-  if (matched) {
+  // Full match — wins the game
+  const fullMatch = currentRule.guesses.some(root =>
+    guessLower.includes(root.toLowerCase())
+  );
+
+  if (fullMatch) {
     endGame('guess');
-  } else {
-    if (graceUsed) {
-      strikes++;
-      if (strikes <= maxStrikes) {
-        document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
-      }
-    } else {
-      graceUsed = true;
-    }
-    const feedback = document.getElementById('feedback');
-    feedback.textContent = '✗ Не угадали правило.';
-    feedback.className = 'feedback wrong';
-    input.value = '';
+    return;
+  }
 
-    if (strikes >= maxStrikes) {
-      setTimeout(() => endGame('strikes'), 1000);
+  // Partial match — warm signal, free, no strike (only for non-exact rules)
+  const isExact = currentRule.exact === true;
+  if (!isExact) {
+    const partialMatch = currentRule.guesses.some(root => {
+      const words = root.toLowerCase().split(/\s+/);
+      return words.some(w => w.length > 3 && guessLower.includes(w));
+    });
+
+    if (partialMatch) {
+      feedback.textContent = '~ Тепло! Попробуйте точнее.';
+      feedback.className = 'feedback warm';
+      input.value = '';
+      return;
     }
+  }
+
+  // No match — costs a strike
+  strikes++;
+  if (strikes <= maxStrikes) {
+    document.getElementById('strikePip' + (strikes - 1)).classList.add('used');
+  }
+  feedback.textContent = '✗ Не угадали правило.';
+  feedback.className = 'feedback wrong';
+  input.value = '';
+
+  if (strikes >= maxStrikes) {
+    setTimeout(() => endGame('strikes'), 1000);
   }
 }
 
