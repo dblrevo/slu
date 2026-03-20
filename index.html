@@ -845,7 +845,7 @@ async function init() {
     await loadRules();
   } catch(e) {
     document.querySelector('.start-text').textContent =
-      'Ошибка загрузки данных. Убедитесь, что файл rules.json находится в той же папке, и откройте игру через локальный сервер (python -m http.server 8000).';
+      'Ошибка загрузки данных. Убедитесь, что файл rules находится в той же папке, и откройте игру через локальный сервер (python -m http.server 8000).';
     document.querySelector('.btn-primary').disabled = true;
   }
 }
